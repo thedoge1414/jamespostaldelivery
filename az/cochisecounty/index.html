@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>James Postal Delivery - Track Package</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+  <div class="max-w-md w-full bg-white rounded-xl shadow-lg border border-gray-200 p-6 space-y-6">
+    <!-- Brand Header -->
+    <div class="text-center space-y-1">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-600 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900">James Postal Delivery</h1>
+      <p class="text-sm text-gray-500">Track your package status across Arizona</p>
+    </div>
+
+    <!-- Tracking Input Form -->
+    <form id="trackingForm" onsubmit="handleTracking(event)" class="space-y-4">
+      <div>
+        <label for="trackingNumber" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+          Tracking Number
+        </label>
+        <div class="relative">
+          <input 
+            type="text" 
+            id="trackingNumber" 
+            placeholder="e.g. JPD-85747-XXXX" 
+            required
+            class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 pr-10 transition uppercase"
+          />
+        </div>
+      </div>
+
+      <button 
+        type="submit" 
+        id="submitBtn"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg px-5 py-3 transition flex items-center justify-center space-x-2"
+      >
+        <span id="btnText">Track Parcel</span>
+        <svg id="spinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </button>
+    </form>
+
+    <!-- Always Error Alert Banner -->
+    <div id="errorAlert" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg space-y-1">
+      <div class="flex items-center space-x-2 text-red-800 font-semibold text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+        </svg>
+        <span>Tracking System Unavailable</span>
+      </div>
+      <p id="errorMessage" class="text-xs text-red-700 pl-7">
+        Unable to locate tracking details for this number. The JPD tracking service is currently unreachable or undergoing maintenance. Please check back later.
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    function handleTracking(e) {
+      e.preventDefault();
+      
+      const trackingInput = document.getElementById('trackingNumber').value.trim();
+      const alertBox = document.getElementById('errorAlert');
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const spinner = document.getElementById('spinner');
+
+      // Hide previous alert
+      alertBox.classList.add('hidden');
+      
+      // Simulate network request UI state
+      btnText.textContent = "Searching...";
+      spinner.classList.remove('hidden');
+      submitBtn.disabled = true;
+
+      setTimeout(() => {
+        // Reset button state
+        btnText.textContent = "Track Parcel";
+        spinner.classList.add('hidden');
+        submitBtn.disabled = false;
+
+        // Display error message regardless of input
+        alertBox.classList.remove('hidden');
+      }, 600);
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>James Postal Delivery - Regional Service Status</title>
+    <!-- Pure.css CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #333333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #1f2d3d;
+            color: #ffffff;
+            padding: 2em 1em;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .header p {
+            margin-top: 0.5em;
+            color: #a0aec0;
+            font-size: 1.1em;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2em auto;
+            padding: 0 1em;
+        }
+
+        .summary-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 1.5em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2em;
+        }
+
+        .status-legend {
+            display: flex;
+            gap: 1.5em;
+            margin-top: 1em;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        /* Status Dots */
+        .dot {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .dot-green {
+            background-color: #28a745;
+            box-shadow: 0 0 6px rgba(40, 167, 69, 0.5);
+        }
+
+        .dot-blue {
+            background-color: #007bff;
+            box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25em 0.75em;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .status-in-service {
+            background-color: #e6f4ea;
+            color: #137333;
+        }
+
+        .status-not-in-service {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        /* Table Customization */
+        .table-container {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .pure-table {
+            width: 100%;
+            border: none;
+        }
+
+        .pure-table thead {
+            background-color: #f1f5f9;
+            color: #475569;
+            text-align: left;
+        }
+
+        .pure-table th, .pure-table td {
+            padding: 1em 1.2em;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .pure-table-striped tr:nth-child(2n+1) {
+            background-color: #fafafa;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2em;
+            color: #64748b;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>James Postal Delivery</h1>
+        <p>Arizona Service Coverage & Status Dashboard</p>
+    </header>
+
+    <main class="container">
+        <section class="summary-card">
+            <h2 style="margin-top:0;">Coverage Overview</h2>
+            <p style="color: #4b5563; margin-bottom: 0.5em;">
+                Real-time delivery availability across all 15 Arizona counties.
+            </p>
+            <div class="status-legend">
+                <div class="legend-item">
+                    <span class="dot dot-green"></span> IN SERVICE (3 Counties)
+                </div>
+                <div class="legend-item">
+                    <span class="dot dot-blue"></span> NOT IN SERVICE (12 Counties)
+                </div>
+            </div>
+        </section>
+
+        <section class="table-container">
+            <table class="pure-table pure-table-horizontal pure-table-striped">
+                <thead>
+                    <tr>
+                        <th>County</th>
+                        <th>Region</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Apache County</td>
+                        <td>Northern / Eastern AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Cochise County</td>
+                        <td>Southeastern AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Coconino County</td>
+                        <td>Northern AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gila County</strong></td>
+                        <td>Central AZ</td>
+                        <td>
+                            <span class="status-badge status-in-service">
+                                <span class="dot dot-green"></span> IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Graham County</td>
+                        <td>Southeastern AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Greenlee County</td>
+                        <td>Eastern AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>La Paz County</td>
+                        <td>Western AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Maricopa County</td>
+                        <td>Central AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Mohave County</td>
+                        <td>Northwestern AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Navajo County</td>
+                        <td>Northern AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pima County</strong></td>
+                        <td>Southern AZ</td>
+                        <td>
+                            <span class="status-badge status-in-service">
+                                <span class="dot dot-green"></span> IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Pinal County</td>
+                        <td>South-Central AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Santa Cruz County</strong></td>
+                        <td>Southern Border AZ</td>
+                        <td>
+                            <span class="status-badge status-in-service">
+                                <span class="dot dot-green"></span> IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Yavapai County</td>
+                        <td>Central / Northern AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Yuma County</td>
+                        <td>Southwestern AZ</td>
+                        <td>
+                            <span class="status-badge status-not-in-service">
+                                <span class="dot dot-blue"></span> NOT IN SERVICE
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 James Postal Delivery. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

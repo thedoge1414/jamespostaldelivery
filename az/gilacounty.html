@@ -1,8 +1,187 @@
-<div style="position: relative; width: 100%; height: 0; padding-top: 104.5388%;
- padding-bottom: 0; box-shadow: 0 2px 8px 0 rgba(63,69,81,0.16); margin-top: 1.6em; margin-bottom: 0.9em; overflow: hidden;
- border-radius: 8px; will-change: transform;">
-  <iframe loading="lazy" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0;margin: 0;"
-    src="https://www.canva.com/design/DAHR7WzOQyM/00VrZsMcRKz5_HUdAqGWeg/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen">
-  </iframe>
-</div>
-<a href="https:&#x2F;&#x2F;www.canva.com&#x2F;design&#x2F;DAHR7WzOQyM&#x2F;00VrZsMcRKz5_HUdAqGWeg&#x2F;view?utm_content=DAHR7WzOQyM&amp;utm_campaign=designshare&amp;utm_medium=embeds&amp;utm_source=link" target="_blank" rel="noopener">Gila County will no longer be in service</a> by Duolingo Onice
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gila County Service Notice</title>
+  
+  <!-- Pure.css CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css" />
+
+  <style>
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .notice-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Heading matching image style */
+    .main-title {
+      font-size: 2.5rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+
+    /* Countdown Section */
+    .countdown-section {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .countdown-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 1rem;
+    }
+
+    .timer-grid {
+      margin-top: 0.5rem;
+    }
+
+    .time-box {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 0.75rem 0.25rem;
+      margin: 0.25rem;
+    }
+
+    .time-num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1;
+    }
+
+    .time-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-top: 0.35rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .expired-message {
+      display: none;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #dc2626;
+    }
+
+    /* Body text matching image */
+    .notice-body {
+      font-size: 1.15rem;
+      color: #111111;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 48em) {
+      .main-title {
+        font-size: 1.8rem;
+      }
+      .notice-body {
+        font-size: 1rem;
+      }
+      .time-num {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="notice-container">
+
+    <!-- Title -->
+    <h1 class="main-title">Gila County will no longer be in service</h1>
+
+    <!-- Countdown Timer -->
+    <div class="countdown-section">
+      <div class="countdown-title">JPD will no longer be available in Gila County in:</div>
+
+      <div id="countdown" class="pure-g timer-grid">
+        <div class="pure-u-1-4">
+          <div class="time-box">
+            <div id="days" class="time-num">00</div>
+            <div class="time-label">Days</div>
+          </div>
+        </div>
+        <div class="pure-u-1-4">
+          <div class="time-box">
+            <div id="hours" class="time-num">00</div>
+            <div class="time-label">Hours</div>
+          </div>
+        </div>
+        <div class="pure-u-1-4">
+          <div class="time-box">
+            <div id="minutes" class="time-num">00</div>
+            <div class="time-label">Minutes</div>
+          </div>
+        </div>
+        <div class="pure-u-1-4">
+          <div class="time-box">
+            <div id="seconds" class="time-num">00</div>
+            <div class="time-label">Seconds</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="expired" class="expired-message">
+        JPD is no longer available in Gila County.
+      </div>
+    </div>
+
+    <!-- Notice Text -->
+    <p class="notice-body">
+      Starting 8/31/26, all of Gila County will no longer be able to use JPD services. If this effects any packages you are supposed to receive, you will still receive them. However, if you are sending packages, you will be requested to use other services, and our system will cancel your package. If you have already sent any packages, they will be delivered. Any packages that are undeliverable will be returned at the cost of the shipper. If you wish to have your location receive packages after 8/31/26, you will be required to buy a $10/mo service subscription to have your packages sent via JPD to you forwarded to local carriers for final delivery.
+    </p>
+
+  </div>
+
+  <script>
+    // Target date: August 31, 2026 at 12:00 AM MST (-07:00)
+    const targetDate = new Date("2026-08-31T00:00:00-07:00");
+
+    function updateCountdown() {
+      const currentTime = new Date().getTime();
+      const timeDifference = targetDate.getTime() - currentTime;
+
+      if (timeDifference <= 0) {
+        document.getElementById('countdown').style.display = 'none';
+        document.getElementById('expired').style.display = 'block';
+        clearInterval(timerInterval);
+        return;
+      }
+
+      const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+      document.getElementById('days').textContent = String(days).padStart(2, '0');
+      document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+      document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+      document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+    }
+
+    updateCountdown();
+    const timerInterval = setInterval(updateCountdown, 1000);
+  </script>
+</body>
+</html>

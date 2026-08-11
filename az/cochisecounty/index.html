@@ -1,99 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>James Postal Delivery - Track Package</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cochise County Mail Transit & Logistics Guide</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .hero-bg {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+    .stat-card {
+      border-left: 4px solid #f59e0b;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body>
 
-  <div class="max-w-md w-full bg-white rounded-xl shadow-lg border border-gray-200 p-6 space-y-6">
-    <!-- Brand Header -->
-    <div class="text-center space-y-1">
-      <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-600 mb-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-        </svg>
+  <!-- Navigation Bar -->
+  <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
+    <div class="container">
+      <div class="navbar-brand">
+        <a class="navbar-item font-weight-bold is-size-4" href="#">
+          <i class="fa-solid fa-route text-warning mr-2"></i>
+          <strong>Cochise County</strong> Mail & Transit Hub
+        </a>
       </div>
-      <h1 class="text-2xl font-bold text-gray-900">James Postal Delivery</h1>
-      <p class="text-sm text-gray-500">Track your package status across Arizona</p>
     </div>
+  </nav>
 
-    <!-- Tracking Input Form -->
-    <form id="trackingForm" onsubmit="handleTracking(event)" class="space-y-4">
-      <div>
-        <label for="trackingNumber" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
-          Tracking Number
-        </label>
-        <div class="relative">
-          <input 
-            type="text" 
-            id="trackingNumber" 
-            placeholder="e.g. JPD-85747-XXXX" 
-            required
-            class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 pr-10 transition uppercase"
-          />
+  <!-- Hero Banner -->
+  <section class="hero hero-bg is-small text-white">
+    <div class="hero-body">
+      <div class="container">
+        <span class="tag is-warning is-light mb-3">Regional Transit Overview</span>
+        <h1 class="title is-2 has-text-white">
+          Mail Flow & Processing Times in Cochise County
+        </h1>
+        <p class="subtitle is-5 has-text-grey-light">
+          Understanding ground transit turnarounds across Sierra Vista, Huachuca City, Bisbee, Tombstone, Benson, and Douglas.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Area -->
+  <section class="section">
+    <div class="container">
+
+      <!-- Turnaround Highlight Stat -->
+      <div class="columns is-centered mb-6">
+        <div class="column is-10">
+          <div class="box stat-card p-5">
+            <div class="level">
+              <div class="level-item has-text-centered">
+                <div>
+                  <p class="heading">Average Ground Turnaround</p>
+                  <p class="title is-1 has-text-warning">1 – 2 Days</p>
+                  <p class="is-size-7 text-muted">Incoming ground mail into Cochise County and back out</p>
+                </div>
+              </div>
+              <div class="level-item has-text-centered">
+                <div>
+                  <p class="heading">Primary Routing Hub</p>
+                  <p class="title is-3">Tucson P&DC</p>
+                  <p class="is-size-7 text-muted">Regional sorting center for Southern AZ</p>
+                </div>
+              </div>
+              <div class="level-item has-text-centered">
+                <div>
+                  <p class="heading">Local Sweep Cut-Off</p>
+                  <p class="title is-3">2:00 PM</p>
+                  <p class="is-size-7 text-muted">Daily local station dispatch</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <button 
-        type="submit" 
-        id="submitBtn"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg px-5 py-3 transition flex items-center justify-center space-x-2"
-      >
-        <span id="btnText">Track Parcel</span>
-        <svg id="spinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </button>
-    </form>
+      <!-- Detail Cards -->
+      <div class="columns">
+        
+        <!-- How Transit Works -->
+        <div class="column is-6">
+          <div class="card">
+            <div class="card-header">
+              <p class="card-header-title">
+                <i class="fa-solid fa-truck-ramp-box mr-2 text-warning"></i> How Incoming & Outgoing Mail Moves
+              </p>
+            </div>
+            <div class="card-content">
+              <div class="content">
+                <p>
+                  Mail originating outside or entering Cochise County moves through a hub-and-spoke routing sequence:
+                </p>
+                <ol>
+                  <li><strong>Entry & Hub Intake:</strong> Inbound standard ground items reach the regional Processing & Distribution Center (P&DC) in Tucson.</li>
+                  <li><strong>County Line Feeder:</strong> Early morning dispatch trucks transport sorted mail down the I-10 and Highway 90 corridors into local distribution hubs in Sierra Vista and Huachuca City.</li>
+                  <li><strong>Local Delivery / Re-Routing:</strong> Carriers perform local route drops. Outbound items collected standardly exit back to the regional hub the same evening, creating a total turnaround of <strong>1 to 2 business days</strong> for standard ground handling.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <!-- Always Error Alert Banner -->
-    <div id="errorAlert" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg space-y-1">
-      <div class="flex items-center space-x-2 text-red-800 font-semibold text-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-        </svg>
-        <span>Tracking System Unavailable</span>
+        <!-- Typical Route Transit Table -->
+        <div class="column is-6">
+          <div class="card">
+            <div class="card-header">
+              <p class="card-header-title">
+                <i class="fa-solid fa-clock-rotate-left mr-2 text-warning"></i> Estimated Ground Transit Schedules
+              </p>
+            </div>
+            <div class="card-content">
+              <table class="table is-fullwidth is-striped">
+                <thead>
+                  <tr>
+                    <th>Origin / Destination</th>
+                    <th>Service Type</th>
+                    <th>Average Window</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Sierra Vista ↔ Huachuca City</strong></td>
+                    <td>Local Ground</td>
+                    <td>Same Day / 1 Day</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Tucson Hub ↔ Cochise County</strong></td>
+                    <td>Regional Ground</td>
+                    <td>1 Business Day</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Phoenix Metro ↔ Cochise County</strong></td>
+                    <td>Standard Ground</td>
+                    <td>1 – 2 Business Days</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Out-of-State ↔ Cochise County</strong></td>
+                    <td>National Ground</td>
+                    <td>2 – 4 Business Days</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="is-size-7 text-muted mt-2">
+                *<em>Times assume drops made prior to local afternoon collection cut-offs.</em>
+              </p>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <p id="errorMessage" class="text-xs text-red-700 pl-7">
-        Unable to locate tracking details for this number. The JPD tracking service is currently unreachable or undergoing maintenance. Please check back later.
-      </p>
+
     </div>
+  </section>
 
-  </div>
-
-  <script>
-    function handleTracking(e) {
-      e.preventDefault();
-      
-      const trackingInput = document.getElementById('trackingNumber').value.trim();
-      const alertBox = document.getElementById('errorAlert');
-      const submitBtn = document.getElementById('submitBtn');
-      const btnText = document.getElementById('btnText');
-      const spinner = document.getElementById('spinner');
-
-      // Hide previous alert
-      alertBox.classList.add('hidden');
-      
-      // Simulate network request UI state
-      btnText.textContent = "Searching...";
-      spinner.classList.remove('hidden');
-      submitBtn.disabled = true;
-
-      setTimeout(() => {
-        // Reset button state
-        btnText.textContent = "Track Parcel";
-        spinner.classList.add('hidden');
-        submitBtn.disabled = false;
-
-        // Display error message regardless of input
-        alertBox.classList.remove('hidden');
-      }, 600);
-    }
-  </script>
+  <!-- Footer -->
+  <footer class="footer has-background-dark has-text-white">
+    <div class="container text-center">
+      <p class="is-size-6"><strong>Cochise County Logistics & Transit Information Page</strong></p>
+      <p class="is-size-7 text-muted">Covering postal and freight transit routes across Sierra Vista, Huachuca City, Bisbee, Tombstone, Benson, and Douglas.</p>
+    </div>
+  </footer>
 
 </body>
 </html>

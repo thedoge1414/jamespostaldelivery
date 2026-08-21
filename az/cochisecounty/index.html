@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>James Postal Delivery - Track Package</title>
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -39,7 +40,7 @@
       <form class="pure-form" id="trackingForm" onsubmit="trackParcel(event)">
         <fieldset>
           <div style="display: flex; gap: 10px;">
-            <input type="number" id="trackingInput" class="pure-input-1" placeholder="Enter Numeric Tracking Number" required style="padding: 10px;" />
+            <input type="number" id="trackingInput" name="tracking_number" class="pure-input-1" placeholder="Enter Numeric Tracking Number" required style="padding: 10px;" />
             <button type="submit" class="pure-button pure-button-primary" style="padding: 10px 20px;">Track</button>
           </div>
         </fieldset>
@@ -73,25 +74,33 @@
   <script>
     const SUPABASE_URL = 'https://qyswvasrwzberynmybsz.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_0p31Ba51Mc_NckcGWIPnlg_lm9c-Qel';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function trackParcel(e) {
       e.preventDefault();
-      const trackingNumber = document.getElementById('trackingInput').value.trim();
+      const rawInput = document.getElementById('trackingInput').value.trim();
+      const trackingNumber = Number(rawInput);
+      
       const resultsArea = document.getElementById('resultsArea');
       const errorArea = document.getElementById('errorArea');
 
       resultsArea.style.display = 'none';
       errorArea.style.display = 'none';
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('parcels')
         .select('*')
         .eq('tracking_number', trackingNumber)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
-        document.getElementById('errorMessage').innerText = error ? error.message : 'Parcel tracking number not found.';
+      if (error) {
+        document.getElementById('errorMessage').innerText = 'Database Error: ' + error.message;
+        errorArea.style.display = 'block';
+        return;
+      }
+
+      if (!data) {
+        document.getElementById('errorMessage').innerText = 'No parcel found with tracking number: ' + trackingNumber;
         errorArea.style.display = 'block';
         return;
       }

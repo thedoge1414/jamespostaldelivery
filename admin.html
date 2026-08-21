@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JPD Admin Control Panel</title>
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -23,26 +24,25 @@
   <div class="container">
     <h2>James Postal Delivery — Admin Control Panel</h2>
 
-    <!-- Create Parcel Section -->
     <div class="card">
       <h3>Create New Parcel</h3>
       <form class="pure-form pure-form-aligned" id="createForm" onsubmit="createParcel(event)">
         <fieldset>
           <div class="pure-control-group">
             <label for="newTracking">Tracking Number</label>
-            <input type="number" id="newTracking" required placeholder="e.g. 940010002000" />
+            <input type="number" id="newTracking" name="tracking" required placeholder="e.g. 940010002000" />
           </div>
           <div class="pure-control-group">
             <label for="newFrom">From Address</label>
-            <input type="text" id="newFrom" placeholder="Sender Name/Location" />
+            <input type="text" id="newFrom" name="from_address" placeholder="Sender Name/Location" />
           </div>
           <div class="pure-control-group">
             <label for="newTo">To Address</label>
-            <input type="text" id="newTo" placeholder="Recipient Name/Location" />
+            <input type="text" id="newTo" name="to_address" placeholder="Recipient Name/Location" />
           </div>
           <div class="pure-control-group">
             <label for="newExpected">Expected Delivery</label>
-            <input type="datetime-local" id="newExpected" />
+            <input type="datetime-local" id="newExpected" name="expected" />
           </div>
           <div class="pure-controls">
             <button type="submit" class="pure-button pure-button-primary">Create Parcel Record</button>
@@ -51,18 +51,17 @@
       </form>
     </div>
 
-    <!-- Add Tracking Event Section -->
     <div class="card">
       <h3>Append Tracking Event</h3>
       <form class="pure-form pure-form-aligned" id="eventForm" onsubmit="appendEvent(event)">
         <fieldset>
           <div class="pure-control-group">
             <label for="selectParcel">Select Target Parcel</label>
-            <select id="selectParcel" class="pure-input-1-2" required onchange="handleParcelSelect()"></select>
+            <select id="selectParcel" name="target_parcel" class="pure-input-1-2" required></select>
           </div>
           <div class="pure-control-group">
             <label for="eventPreset">Preset Event Type</label>
-            <select id="eventPreset" class="pure-input-1-2" onchange="applyPreset()">
+            <select id="eventPreset" name="preset" class="pure-input-1-2" onchange="applyPreset()">
               <option value="">-- Select Standard Event --</option>
               <optgroup label="Standard Domestic Events">
                 <option value="Shipping Label Created">Shipping Label Created</option>
@@ -88,19 +87,19 @@
           </div>
           <div class="pure-control-group">
             <label for="eventStatus">Custom Status Title</label>
-            <input type="text" id="eventStatus" required class="pure-input-1-2" />
+            <input type="text" id="eventStatus" name="status" required class="pure-input-1-2" />
           </div>
           <div class="pure-control-group">
             <label for="eventLocation">Facility / Location</label>
-            <input type="text" id="eventLocation" placeholder="e.g. Phoenix AZ Sort Facility" class="pure-input-1-2" />
+            <input type="text" id="eventLocation" name="location" placeholder="e.g. Phoenix AZ Sort Facility" class="pure-input-1-2" />
           </div>
           <div class="pure-control-group">
             <label for="eventDescription">Status Notes</label>
-            <input type="text" id="eventDescription" placeholder="e.g. Package processed ahead of schedule" class="pure-input-1-2" />
+            <input type="text" id="eventDescription" name="description" placeholder="e.g. Package processed ahead of schedule" class="pure-input-1-2" />
           </div>
           <div class="pure-control-group">
             <label for="eventTimestamp">Event Date & Time</label>
-            <input type="datetime-local" id="eventTimestamp" required />
+            <input type="datetime-local" id="eventTimestamp" name="timestamp" required />
           </div>
           <div class="pure-controls">
             <button type="submit" class="pure-button pure-button-primary">Add Event to Timeline</button>
@@ -109,7 +108,6 @@
       </form>
     </div>
 
-    <!-- Active Parcels Table -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3>All Database Parcels</h3>
@@ -136,7 +134,7 @@
   <script>
     const SUPABASE_URL = 'https://qyswvasrwzberynmybsz.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_0p31Ba51Mc_NckcGWIPnlg_lm9c-Qel';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentParcels = [];
 
@@ -146,13 +144,14 @@
     };
 
     async function loadParcels() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('parcels')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
         alert('Error loading parcels: ' + error.message);
+        console.error(error);
         return;
       }
 
@@ -175,6 +174,11 @@
     function renderTable() {
       const tbody = document.getElementById('parcelsTableBody');
       tbody.innerHTML = '';
+
+      if (currentParcels.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No parcels found in database. Create one above!</td></tr>';
+        return;
+      }
 
       currentParcels.forEach(p => {
         const eventsArr = Array.isArray(p.events) ? p.events : [];
@@ -199,7 +203,7 @@
 
     async function createParcel(e) {
       e.preventDefault();
-      const tracking_number = parseInt(document.getElementById('newTracking').value, 10);
+      const tracking_number = Number(document.getElementById('newTracking').value);
       const from = document.getElementById('newFrom').value;
       const to = document.getElementById('newTo').value;
       const expected = document.getElementById('newExpected').value;
@@ -218,7 +222,7 @@
         is_delivered: false
       };
 
-      const { error } = await supabase.from('parcels').insert([newRecord]);
+      const { error } = await supabaseClient.from('parcels').insert([newRecord]);
       if (error) {
         alert("Failed to create parcel: " + error.message);
       } else {
@@ -252,13 +256,12 @@
 
       let updatePayload = { events: updatedEvents };
 
-      // Auto-set delivery flag if status indicates delivery
       if (status.toLowerCase().includes('delivered')) {
         updatePayload.is_delivered = true;
         updatePayload.delivery_timestamp = timestamp;
       }
 
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from('parcels')
         .update(updatePayload)
         .eq('id', parcelId);
@@ -278,7 +281,7 @@
         delivery_timestamp: newStatus ? new Date().toISOString() : null
       };
 
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from('parcels')
         .update(updateData)
         .eq('id', id);

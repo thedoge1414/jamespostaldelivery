@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Package Tracking Portal</title>
+  <link rel="shortcut icon" href="#">
+  <!-- Pure.css CDN for clean responsive layout -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background-color: #f4f6f9; color: #333; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .container { max-width: 700px; margin: 3rem auto; padding: 0 1rem; }
+    .search-box { background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 1.5rem; }
+    .status-card { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: none; }
+    
+    /* Header info grid */
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin: 1.5rem 0; padding: 1rem; background: #f8fafc; border-radius: 6px; }
+    .info-label { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: bold; }
+    .info-val { font-size: 0.95rem; font-weight: 600; color: #1e293b; margin-top: 0.2rem; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
+    .badge-delivered { background-color: #d1fae5; color: #065f46; }
+    .badge-transit { background-color: #dbeafe; color: #1e40af; }
+
+    /* Vertical Timeline */
+    .timeline { position: relative; margin-top: 2rem; padding-left: 1.5rem; border-left: 2px solid #e2e8f0; }
+    .timeline-item { position: relative; margin-bottom: 1.5rem; }
+    .timeline-item::before { content: ''; position: absolute; left: -1.85rem; top: 0.2rem; width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; }
+    .timeline-item.latest::before { background: #2563eb; ring: 4px rgba(37, 99, 235, 0.2); }
+    .timeline-status { font-weight: 600; font-size: 1rem; color: #0f172a; }
+    .timeline-location { font-size: 0.875rem; color: #475569; }
+    .timeline-time { font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem; }
+    
+    .error-msg { color: #dc2626; font-size: 0.9rem; margin-top: 0.5rem; display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2 style="text-align: center; margin-bottom: 1.5rem;">Track Your Package</h2>
+
+    <!-- Search Section -->
+    <div class="search-box">
+      <form class="pure-form" onsubmit="trackPackage(event)">
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="number" id="trackingNum" class="pure-input-1" placeholder="Enter Tracking Number..." required style="padding: 0.6rem;" />
+          <button type="submit" class="pure-button pure-button-primary" style="padding: 0.6rem 1.2rem; font-weight: bold;">Track</button>
+        </div>
+      </form>
+      <div id="errorMsg" class="error-msg"></div>
+    </div>
+
+    <!-- Results Card -->
+    <div id="statusCard" class="status-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span class="info-label">Tracking Number</span>
+          <div id="displayNum" class="info-val" style="font-size: 1.2rem;"></div>
+        </div>
+        <span id="statusBadge" class="badge"></span>
+      </div>
+
+      <div class="info-grid">
+        <div>
+          <span class="info-label">From</span>
+          <div id="displayFrom" class="info-val">-</div>
+        </div>
+        <div>
+          <span class="info-label">To</span>
+          <div id="displayTo" class="info-val">-</div>
+        </div>
+        <div>
+          <span class="info-label">Expected Arrival</span>
+          <div id="displayExpected" class="info-val">-</div>
+        </div>
+      </div>
+
+      <h4 style="margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">Tracking History</h4>
+      <div id="timelineContainer" class="timeline"></div>
+    </div>
+  </div>
+
+  <script>
+    // Supabase Public Client Initialization
+    const SUPABASE_URL = "https://qyswvasrwzberynmybsz.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0p31Ba51Mc_NckcGWIPnlg_lm9c-Qel";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    async function trackPackage(e) {
+      e.preventDefault();
+
+      const trackingNum = document.getElementById('trackingNum').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+      const statusCard = document.getElementById('statusCard');
+
+      errorMsg.style.display = 'none';
+      statusCard.style.display = 'none';
+
+      if (!trackingNum) return;
+
+      // Query the 'parcels' table
+      const { data, error } = await supabaseClient
+        .from('parcels')
+        .select('*')
+        .eq('tracking_number', trackingNum)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Lookup error:", error);
+        errorMsg.textContent = "An error occurred while fetching package information.";
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      if (!data) {
+        errorMsg.textContent = "No package found with that tracking number. Please check and try again.";
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      renderPackageData(data);
+    }
+
+    function renderPackageData(parcel) {
+      document.getElementById('displayNum').textContent = parcel.tracking_number;
+      document.getElementById('displayFrom').textContent = parcel.from || 'N/A';
+      document.getElementById('displayTo').textContent = parcel.to || 'N/A';
+
+      // Format expected delivery
+      if (parcel.expected_delivery) {
+        document.getElementById('displayExpected').textContent = new Date(parcel.expected_delivery).toLocaleDateString(undefined, {
+          weekday: 'short', month: 'short', day: 'numeric'
+        });
+      } else {
+        document.getElementById('displayExpected').textContent = 'Pending';
+      }
+
+      // Format status badge
+      const badge = document.getElementById('statusBadge');
+      if (parcel.is_delivered) {
+        badge.className = "badge badge-delivered";
+        badge.textContent = "Delivered";
+      } else {
+        badge.className = "badge badge-transit";
+        badge.textContent = "In Transit";
+      }
+
+      // Render timeline from JSON events array
+      const timeline = document.getElementById('timelineContainer');
+      timeline.innerHTML = '';
+
+      const events = Array.isArray(parcel.events) ? [...parcel.events].reverse() : [];
+
+      if (events.length === 0) {
+        timeline.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No tracking scans recorded yet.</p>';
+      } else {
+        events.forEach((evt, idx) => {
+          const item = document.createElement('div');
+          // Add 'latest' class to the most recent event (first item in reversed array)
+          item.className = `timeline-item ${idx === 0 ? 'latest' : ''}`;
+          
+          const timeStr = evt.timestamp ? new Date(evt.timestamp).toLocaleString() : '';
+
+          item.innerHTML = `
+            <div class="timeline-status">${evt.status}</div>
+            <div class="timeline-location">${evt.location || ''}</div>
+            <div class="timeline-time">${timeStr}</div>
+          `;
+          timeline.appendChild(item);
+        });
+      }
+
+      document.getElementById('statusCard').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

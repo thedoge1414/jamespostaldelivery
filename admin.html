@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin - Postal Tracking Manager</title>
+  <title>Admin - Parcel Tracking Manager</title>
+  <!-- Prevent favicon 404 console error -->
+  <link rel="shortcut icon" href="#">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
@@ -33,7 +35,7 @@
 
   <h2>Postal Tracking Admin Dashboard</h2>
 
-  <!-- 1. Search / Fetch Record -->
+  <!-- 1. Search / Fetch Parcel Record -->
   <div class="card">
     <div class="form-group">
       <label for="trackingInput">Lookup Tracking Number (Numeric):</label>
@@ -44,11 +46,10 @@
     </div>
   </div>
 
-  <!-- 2. Add / Update Package Form -->
+  <!-- 2. Add / Update Parcel Form -->
   <div class="card">
     <h3>Package Overview & Append Events</h3>
     
-    <!-- Quick Preset Buttons -->
     <div class="preset-btns">
       <button type="button" class="btn-secondary" onclick="loadPreset('domestic')">Load Domestic Workflow</button>
       <button type="button" class="btn-secondary" onclick="loadPreset('international')">Load International Workflow</button>
@@ -70,7 +71,7 @@
         </div>
         <div class="form-group">
           <label for="isDelivered">Is Delivered?</label>
-          <select id="isDelivered" onchange="toggleDeliveryTimestamp()">
+          <select id="isDelivered">
             <option value="false">In Transit / Active</option>
             <option value="true">Delivered</option>
           </select>
@@ -91,12 +92,12 @@
         </div>
       </div>
 
-      <button type="submit" class="full-width" style="margin-top: 0.5rem;">Save Record & Append Event</button>
+      <button type="submit" class="full-width" style="margin-top: 0.5rem;">Save Parcel Record & Append Event</button>
       <div id="statusMsg" style="margin-top: 0.5rem; font-size: 0.85rem;"></div>
     </form>
   </div>
 
-  <!-- 3. Real-time JSON Events Timeline Output -->
+  <!-- 3. Dynamic Events Output -->
   <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
       <h3 style="margin: 0;">Tracking Events Timeline</h3>
@@ -104,7 +105,7 @@
     </div>
 
     <div id="timelineContainer" class="events-timeline">
-      <p style="color: #64748b;">No tracking events loaded.</p>
+      <p style="color: #64748b;">No parcel events loaded.</p>
     </div>
 
     <details style="margin-top: 1.5rem;">
@@ -114,12 +115,11 @@
   </div>
 
   <script>
-    // 1. Supabase Initialization
+    // Supabase Setup
     const SUPABASE_URL = "https://qyswvasrwzberynmybsz.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0p31Ba51Mc_NckcGWIPnlg_lm9c-Qel";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-    // Current state in memory matching your schema
     let currentRecord = {
       tracking_number: null,
       from: '',
@@ -127,10 +127,9 @@
       expected_delivery: null,
       is_delivered: false,
       delivery_timestamp: null,
-      events: [] // Stored as a JSON Array in Supabase
+      events: []
     };
 
-    // Realistic Preset Workflows
     const PRESETS = {
       domestic: [
         { status: "Shipping Label Created, USPS Awaiting Item", location: "Phoenix, AZ 85001", timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
@@ -158,24 +157,23 @@
       renderUI();
     }
 
-    // 2. Fetch Record from Supabase
+    // Querying the 'parcels' table
     async function fetchTrackingData() {
       const trackingNum = document.getElementById('trackingInput').value;
       if (!trackingNum) return alert('Please enter a numeric tracking number');
 
       const { data, error } = await supabaseClient
-        .from('events')
+        .from('parcels') // <-- Target table is now 'parcels'
         .select('*')
         .eq('tracking_number', trackingNum)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+      if (error) {
         console.error("Fetch Error:", error);
-        return alert("Error fetching record from database.");
+        return alert("Error fetching parcel record: " + error.message);
       }
 
       if (data) {
-        // Record exists: sync schema properties
         currentRecord = {
           id: data.id,
           tracking_number: Number(data.tracking_number),
@@ -187,7 +185,6 @@
           events: Array.isArray(data.events) ? data.events : []
         };
 
-        // Fill Form
         document.getElementById('fromAddr').value = currentRecord.from;
         document.getElementById('toAddr').value = currentRecord.to;
         document.getElementById('isDelivered').value = currentRecord.is_delivered ? "true" : "false";
@@ -195,7 +192,6 @@
           document.getElementById('expectedDelivery').value = new Date(currentRecord.expected_delivery).toISOString().slice(0, 16);
         }
       } else {
-        // New record initialization
         currentRecord = {
           tracking_number: Number(trackingNum),
           from: '',
@@ -205,13 +201,13 @@
           delivery_timestamp: null,
           events: []
         };
-        alert("New tracking record created for this number. Fill in details and save.");
+        alert("No parcel found with this tracking number. Fill in details and click Save to create it.");
       }
 
       renderUI();
     }
 
-    // 3. Form Submit / Upsert to Supabase
+    // Save/Upsert into 'parcels' table
     async function handleFormSubmit(e) {
       e.preventDefault();
 
@@ -223,14 +219,12 @@
       const isDelivered = document.getElementById('isDelivered').value === "true";
       const expectedDel = document.getElementById('expectedDelivery').value;
 
-      // Construct new JSON event entry
       const newEvent = {
         status: eventStatus,
         location: eventLocation,
         timestamp: new Date().toISOString()
       };
 
-      // Append to the JSON array
       currentRecord.events.push(newEvent);
       currentRecord.tracking_number = Number(trackingNum);
       currentRecord.from = document.getElementById('fromAddr').value;
@@ -240,9 +234,8 @@
       currentRecord.expected_delivery = expectedDel ? new Date(expectedDel).toISOString() : null;
 
       const statusMsg = document.getElementById('statusMsg');
-      statusMsg.textContent = "Saving to database...";
+      statusMsg.textContent = "Saving to parcels table...";
 
-      // Payload strictly matching the database columns in your screenshot
       const payload = {
         tracking_number: currentRecord.tracking_number,
         from: currentRecord.from,
@@ -250,33 +243,31 @@
         expected_delivery: currentRecord.expected_delivery,
         is_delivered: currentRecord.is_delivered,
         delivery_timestamp: currentRecord.delivery_timestamp,
-        events: currentRecord.events // Stored as json object/array column
+        events: currentRecord.events
       };
 
-      const { data, error } = await supabaseClient
-        .from('events')
+      const { error } = await supabaseClient
+        .from('parcels') // <-- Upserting into 'parcels'
         .upsert([payload], { onConflict: 'tracking_number' });
 
       if (error) {
-        console.error("Supabase Upsert Error:", error);
+        console.error("Supabase Error:", error);
         statusMsg.style.color = "red";
         statusMsg.textContent = "Error saving: " + error.message;
       } else {
         statusMsg.style.color = "green";
-        statusMsg.textContent = "Successfully saved package & events!";
+        statusMsg.textContent = "Successfully saved parcel & event!";
         document.getElementById('eventStatus').value = '';
         document.getElementById('eventLocation').value = '';
         renderUI();
       }
     }
 
-    // 4. Render Dynamic Elements & JSON Preview
     function renderUI() {
       const container = document.getElementById('timelineContainer');
       const badge = document.getElementById('deliveryBadge');
       const jsonPreview = document.getElementById('jsonPreview');
 
-      // Update Delivered Badge
       if (currentRecord.is_delivered) {
         badge.className = "status-badge delivered";
         badge.textContent = "Delivered";
@@ -285,17 +276,14 @@
         badge.textContent = "In Transit";
       }
 
-      // Output Raw JSON
       jsonPreview.textContent = JSON.stringify(currentRecord.events, null, 2);
 
-      // Output Visual Timeline
       container.innerHTML = '';
       if (currentRecord.events.length === 0) {
-        container.innerHTML = '<p style="color: #64748b;">No tracking events recorded yet.</p>';
+        container.innerHTML = '<p style="color: #64748b;">No events recorded for this parcel.</p>';
         return;
       }
 
-      // Display newest events at the top
       [...currentRecord.events].reverse().forEach(evt => {
         const item = document.createElement('div');
         item.className = 'event-item';

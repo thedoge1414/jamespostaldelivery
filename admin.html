@@ -2,156 +2,309 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin - Tracking Event Manager</title>
+  <title>Admin - Postal Tracking Manager</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: sans-serif; max-width: 650px; margin: 2rem auto; padding: 0 1rem; }
-    .form-group { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
-    input, button, textarea { padding: 0.5rem; font-size: 1rem; }
-    button { cursor: pointer; background: #0066cc; color: #fff; border: none; border-radius: 4px; padding: 0.6rem; }
-    button:hover { background: #0052a3; }
-    .events-list { margin-top: 1.5rem; border-top: 2px solid #ccc; padding-top: 1rem; }
-    .event-card { background: #f9f9f9; border-left: 4px solid #0066cc; padding: 0.75rem; margin-bottom: 0.75rem; }
-    .event-time { font-size: 0.85rem; color: #666; }
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.8rem; }
+    .full-width { grid-column: span 2; }
+    label { font-weight: 600; font-size: 0.85rem; color: #4a5568; }
+    input, select, button { padding: 0.6rem; font-size: 0.95rem; border: 1px solid #cbd5e1; border-radius: 6px; }
+    button { cursor: pointer; background: #2563eb; color: white; border: none; font-weight: 600; transition: background 0.2s; }
+    button:hover { background: #1d4ed8; }
+    .btn-secondary { background: #64748b; }
+    .btn-secondary:hover { background: #475569; }
+    .preset-btns { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .preset-btns button { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+    .events-timeline { border-left: 2px solid #e2e8f0; margin-left: 0.5rem; padding-left: 1.2rem; }
+    .event-item { position: relative; margin-bottom: 1.2rem; }
+    .event-item::before { content: ''; position: absolute; left: -1.55rem; top: 0.25rem; width: 10px; height: 10px; border-radius: 50%; background: #2563eb; }
+    .event-time { font-size: 0.75rem; color: #64748b; }
+    .event-title { font-weight: 600; font-size: 0.95rem; }
+    .event-loc { font-size: 0.85rem; color: #475569; }
+    .status-badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+    .delivered { background: #dcfce7; color: #15803d; }
+    .in-transit { background: #dbeafe; color: #1e40af; }
   </style>
 </head>
 <body>
 
-  <h2>Update Order Tracking Status</h2>
-  
-  <form id="eventForm" onsubmit="handleFormSubmit(event)">
+  <h2>Postal Tracking Admin Dashboard</h2>
+
+  <!-- 1. Search / Fetch Record -->
+  <div class="card">
     <div class="form-group">
-      <label for="trackingNumber">Tracking Number:</label>
-      <input 
-        type="text" 
-        id="trackingNumber" 
-        placeholder="e.g., JPD-88204-AZ" 
-        required 
-        oninput="loadExistingEvents()"
-      />
-    </div>
-
-    <div class="form-group">
-      <label for="eventStatus">Status / Description:</label>
-      <input type="text" id="eventStatus" placeholder="e.g., Package arrived at sorting facility" required />
-    </div>
-
-    <div class="form-group">
-      <label for="eventLocation">Location (Optional):</label>
-      <input type="text" id="eventLocation" placeholder="e.g., Tucson, AZ" />
-    </div>
-
-    <button type="submit">Append Event</button>
-  </form>
-
-  <div class="events-list">
-    <h3>Existing Tracking Events</h3>
-    <div id="eventContainer">
-      <p style="color: #777;">Enter a tracking number above to view available events.</p>
+      <label for="trackingInput">Lookup Tracking Number (Numeric):</label>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="number" id="trackingInput" placeholder="e.g., 9400111202555000000000" style="flex: 1;" />
+        <button onclick="fetchTrackingData()">Search DB</button>
+      </div>
     </div>
   </div>
 
+  <!-- 2. Add / Update Package Form -->
+  <div class="card">
+    <h3>Package Overview & Append Events</h3>
+    
+    <!-- Quick Preset Buttons -->
+    <div class="preset-btns">
+      <button type="button" class="btn-secondary" onclick="loadPreset('domestic')">Load Domestic Workflow</button>
+      <button type="button" class="btn-secondary" onclick="loadPreset('international')">Load International Workflow</button>
+    </div>
+
+    <form id="packageForm" onsubmit="handleFormSubmit(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="fromAddr">From (Origin):</label>
+          <input type="text" id="fromAddr" placeholder="e.g., Phoenix, AZ, US" required />
+        </div>
+        <div class="form-group">
+          <label for="toAddr">To (Destination):</label>
+          <input type="text" id="toAddr" placeholder="e.g., Tucson, AZ, US" required />
+        </div>
+        <div class="form-group">
+          <label for="expectedDelivery">Expected Delivery:</label>
+          <input type="datetime-local" id="expectedDelivery" />
+        </div>
+        <div class="form-group">
+          <label for="isDelivered">Is Delivered?</label>
+          <select id="isDelivered" onchange="toggleDeliveryTimestamp()">
+            <option value="false">In Transit / Active</option>
+            <option value="true">Delivered</option>
+          </select>
+        </div>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 1rem 0;" />
+
+      <h4>Append New Postal Event</h4>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="eventStatus">Event Description:</label>
+          <input type="text" id="eventStatus" placeholder="e.g., Arrived at Regional Origin Facility" required />
+        </div>
+        <div class="form-group">
+          <label for="eventLocation">Event Location:</label>
+          <input type="text" id="eventLocation" placeholder="e.g., TUCSON AZ DISTRIBUTION CENTER" required />
+        </div>
+      </div>
+
+      <button type="submit" class="full-width" style="margin-top: 0.5rem;">Save Record & Append Event</button>
+      <div id="statusMsg" style="margin-top: 0.5rem; font-size: 0.85rem;"></div>
+    </form>
+  </div>
+
+  <!-- 3. Real-time JSON Events Timeline Output -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="margin: 0;">Tracking Events Timeline</h3>
+      <span id="deliveryBadge" class="status-badge in-transit">In Transit</span>
+    </div>
+
+    <div id="timelineContainer" class="events-timeline">
+      <p style="color: #64748b;">No tracking events loaded.</p>
+    </div>
+
+    <details style="margin-top: 1.5rem;">
+      <summary style="cursor: pointer; font-size: 0.85rem; color: #64748b;">View Raw JSON Array (`events` column)</summary>
+      <pre id="jsonPreview" style="background: #f8fafc; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem;"></pre>
+    </details>
+  </div>
+
   <script>
-    // Safe lookup helper that guarantees an order object with an events array exists
-    function getOrderData(trackingNum) {
-      if (!trackingNum) return null;
-      
-      const stored = localStorage.getItem('tracking_orders');
-      let orders = {};
+    // 1. Supabase Initialization
+    const SUPABASE_URL = "https://qyswvasrwzberynmybsz.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0p31Ba51Mc_NckcGWIPnlg_lm9c-Qel";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-      try {
-        orders = stored ? JSON.parse(stored) : {};
-      } catch (e) {
-        console.error("Failed to parse tracking data:", e);
-        orders = {};
-      }
+    // Current state in memory matching your schema
+    let currentRecord = {
+      tracking_number: null,
+      from: '',
+      to: '',
+      expected_delivery: null,
+      is_delivered: false,
+      delivery_timestamp: null,
+      events: [] // Stored as a JSON Array in Supabase
+    };
 
-      // If tracking number doesn't exist yet in storage, initialize it safely
-      if (!orders[trackingNum] || typeof orders[trackingNum] !== 'object') {
-        orders[trackingNum] = { trackingNumber: trackingNum, events: [] };
-      }
-      
-      // Crucial fix: Ensure the 'events' property is ALWAYS an array
-      if (!Array.isArray(orders[trackingNum].events)) {
-        orders[trackingNum].events = [];
-      }
+    // Realistic Preset Workflows
+    const PRESETS = {
+      domestic: [
+        { status: "Shipping Label Created, USPS Awaiting Item", location: "Phoenix, AZ 85001", timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
+        { status: "Accepted at USPS Origin Facility", location: "PHOENIX AZ DISTRIBUTION CENTER", timestamp: new Date(Date.now() - 86400000).toISOString() },
+        { status: "Arrived at Regional Postal Facility", location: "TUCSON AZ DISTRIBUTION CENTER", timestamp: new Date().toISOString() }
+      ],
+      international: [
+        { status: "Item Received by Foreign Postal Administration", location: "TOKYO, JAPAN", timestamp: new Date(Date.now() - 86400000 * 4).toISOString() },
+        { status: "Processed Through Facility", location: "ISC LOS ANGELES CA (USPS)", timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
+        { status: "Inbound Into Customs", location: "LOS ANGELES, UNITED STATES", timestamp: new Date(Date.now() - 86400000).toISOString() },
+        { status: "Cleared Customs", location: "LOS ANGELES, UNITED STATES", timestamp: new Date().toISOString() }
+      ]
+    };
 
-      return { orders, currentOrder: orders[trackingNum] };
+    function loadPreset(type) {
+      if (type === 'domestic') {
+        document.getElementById('fromAddr').value = 'Phoenix, AZ, US';
+        document.getElementById('toAddr').value = 'Tucson, AZ, US';
+        currentRecord.events = [...PRESETS.domestic];
+      } else {
+        document.getElementById('fromAddr').value = 'Tokyo, JP';
+        document.getElementById('toAddr').value = 'Tucson, AZ, US';
+        currentRecord.events = [...PRESETS.international];
+      }
+      renderUI();
     }
 
-    // Append function on line 252 - safe from undefined 'events' property errors
-    function appendEvent(trackingNum, newEvent) {
-      const data = getOrderData(trackingNum);
-      if (!data) return;
+    // 2. Fetch Record from Supabase
+    async function fetchTrackingData() {
+      const trackingNum = document.getElementById('trackingInput').value;
+      if (!trackingNum) return alert('Please enter a numeric tracking number');
 
-      const { orders, currentOrder } = data;
+      const { data, error } = await supabaseClient
+        .from('events')
+        .select('*')
+        .eq('tracking_number', trackingNum)
+        .single();
 
-      // Safely append to the events array
-      currentOrder.events.push(newEvent);
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+        console.error("Fetch Error:", error);
+        return alert("Error fetching record from database.");
+      }
 
-      // Save updated data structure back to storage
-      localStorage.setItem('tracking_orders', JSON.stringify(orders));
+      if (data) {
+        // Record exists: sync schema properties
+        currentRecord = {
+          id: data.id,
+          tracking_number: Number(data.tracking_number),
+          from: data.from || '',
+          to: data.to || '',
+          expected_delivery: data.expected_delivery,
+          is_delivered: data.is_delivered || false,
+          delivery_timestamp: data.delivery_timestamp,
+          events: Array.isArray(data.events) ? data.events : []
+        };
 
-      // Refresh displayed events
-      renderEvents(currentOrder.events);
+        // Fill Form
+        document.getElementById('fromAddr').value = currentRecord.from;
+        document.getElementById('toAddr').value = currentRecord.to;
+        document.getElementById('isDelivered').value = currentRecord.is_delivered ? "true" : "false";
+        if (currentRecord.expected_delivery) {
+          document.getElementById('expectedDelivery').value = new Date(currentRecord.expected_delivery).toISOString().slice(0, 16);
+        }
+      } else {
+        // New record initialization
+        currentRecord = {
+          tracking_number: Number(trackingNum),
+          from: '',
+          to: '',
+          expected_delivery: null,
+          is_delivered: false,
+          delivery_timestamp: null,
+          events: []
+        };
+        alert("New tracking record created for this number. Fill in details and save.");
+      }
+
+      renderUI();
     }
 
-    // Form submission
-    function handleFormSubmit(e) {
+    // 3. Form Submit / Upsert to Supabase
+    async function handleFormSubmit(e) {
       e.preventDefault();
 
-      const trackingNum = document.getElementById('trackingNumber').value.trim();
-      const statusText = document.getElementById('eventStatus').value.trim();
-      const locationText = document.getElementById('eventLocation').value.trim();
+      const trackingNum = document.getElementById('trackingInput').value;
+      if (!trackingNum) return alert("Specify a tracking number above first!");
 
-      if (!trackingNum || !statusText) return;
+      const eventStatus = document.getElementById('eventStatus').value.trim();
+      const eventLocation = document.getElementById('eventLocation').value.trim();
+      const isDelivered = document.getElementById('isDelivered').value === "true";
+      const expectedDel = document.getElementById('expectedDelivery').value;
 
+      // Construct new JSON event entry
       const newEvent = {
-        id: 'evt_' + Date.now(),
-        timestamp: new Date().toLocaleString(),
-        status: statusText,
-        location: locationText || 'N/A'
+        status: eventStatus,
+        location: eventLocation,
+        timestamp: new Date().toISOString()
       };
 
-      // Calls appendEvent safely
-      appendEvent(trackingNum, newEvent);
+      // Append to the JSON array
+      currentRecord.events.push(newEvent);
+      currentRecord.tracking_number = Number(trackingNum);
+      currentRecord.from = document.getElementById('fromAddr').value;
+      currentRecord.to = document.getElementById('toAddr').value;
+      currentRecord.is_delivered = isDelivered;
+      currentRecord.delivery_timestamp = isDelivered ? new Date().toISOString() : null;
+      currentRecord.expected_delivery = expectedDel ? new Date(expectedDel).toISOString() : null;
 
-      // Clear input fields (keep tracking number active)
-      document.getElementById('eventStatus').value = '';
-      document.getElementById('eventLocation').value = '';
+      const statusMsg = document.getElementById('statusMsg');
+      statusMsg.textContent = "Saving to database...";
+
+      // Payload strictly matching the database columns in your screenshot
+      const payload = {
+        tracking_number: currentRecord.tracking_number,
+        from: currentRecord.from,
+        to: currentRecord.to,
+        expected_delivery: currentRecord.expected_delivery,
+        is_delivered: currentRecord.is_delivered,
+        delivery_timestamp: currentRecord.delivery_timestamp,
+        events: currentRecord.events // Stored as json object/array column
+      };
+
+      const { data, error } = await supabaseClient
+        .from('events')
+        .upsert([payload], { onConflict: 'tracking_number' });
+
+      if (error) {
+        console.error("Supabase Upsert Error:", error);
+        statusMsg.style.color = "red";
+        statusMsg.textContent = "Error saving: " + error.message;
+      } else {
+        statusMsg.style.color = "green";
+        statusMsg.textContent = "Successfully saved package & events!";
+        document.getElementById('eventStatus').value = '';
+        document.getElementById('eventLocation').value = '';
+        renderUI();
+      }
     }
 
-    // Render events on input or update
-    function loadExistingEvents() {
-      const trackingNum = document.getElementById('trackingNumber').value.trim();
-      if (!trackingNum) {
-        document.getElementById('eventContainer').innerHTML = 
-          '<p style="color: #777;">Enter a tracking number above to view available events.</p>';
-        return;
+    // 4. Render Dynamic Elements & JSON Preview
+    function renderUI() {
+      const container = document.getElementById('timelineContainer');
+      const badge = document.getElementById('deliveryBadge');
+      const jsonPreview = document.getElementById('jsonPreview');
+
+      // Update Delivered Badge
+      if (currentRecord.is_delivered) {
+        badge.className = "status-badge delivered";
+        badge.textContent = "Delivered";
+      } else {
+        badge.className = "status-badge in-transit";
+        badge.textContent = "In Transit";
       }
 
-      const data = getOrderData(trackingNum);
-      renderEvents(data ? data.currentOrder.events : []);
-    }
+      // Output Raw JSON
+      jsonPreview.textContent = JSON.stringify(currentRecord.events, null, 2);
 
-    function renderEvents(eventsArray) {
-      const container = document.getElementById('eventContainer');
+      // Output Visual Timeline
       container.innerHTML = '';
-
-      if (!eventsArray || eventsArray.length === 0) {
-        container.innerHTML = '<p>No events recorded for this tracking number yet.</p>';
+      if (currentRecord.events.length === 0) {
+        container.innerHTML = '<p style="color: #64748b;">No tracking events recorded yet.</p>';
         return;
       }
 
-      // Display most recent events first
-      [...eventsArray].reverse().forEach(evt => {
-        const div = document.createElement('div');
-        div.className = 'event-card';
-        div.innerHTML = `
-          <strong>${evt.status}</strong>
-          <div><small>Location: ${evt.location}</small></div>
-          <div class="event-time">${evt.timestamp}</div>
+      // Display newest events at the top
+      [...currentRecord.events].reverse().forEach(evt => {
+        const item = document.createElement('div');
+        item.className = 'event-item';
+        item.innerHTML = `
+          <div class="event-title">${evt.status}</div>
+          <div class="event-loc">${evt.location}</div>
+          <div class="event-time">${new Date(evt.timestamp).toLocaleString()}</div>
         `;
-        container.appendChild(div);
+        container.appendChild(item);
       });
     }
   </script>

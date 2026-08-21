@@ -2,296 +2,117 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JPD Admin Control Panel</title>
-  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Admin Dashboard - Event Manager</title>
   <style>
-    body { background-color: #f4f6f8; color: #333; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .container { max-width: 1000px; margin: 30px auto; padding: 20px; }
-    .card { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
-    .pure-control-group { margin-bottom: 12px !important; }
-    .pure-control-group label { font-weight: bold; }
-    .table-container { overflow-x: auto; }
-    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }
-    .badge-delivered { background: #def7ec; color: #03543f; }
-    .badge-transit { background: #e1effe; color: #1e429f; }
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    form { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; }
+    input, button { padding: 0.5rem; font-size: 1rem; }
+    ul { list-style-type: none; padding: 0; }
+    li { background: #f4f4f4; padding: 0.75rem; margin-bottom: 0.5rem; border-radius: 4px; }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h2>James Postal Delivery — Admin Control Panel</h2>
+  <h2>Add New Event</h2>
+  
+  <form id="eventForm" onsubmit="handleFormSubmit(event)">
+    <input type="text" id="eventTitle" placeholder="Event Title" required />
+    <input type="date" id="eventDate" required />
+    <button type="submit">Append Event</button>
+  </form>
 
-    <div class="card">
-      <h3>Create New Parcel</h3>
-      <form class="pure-form pure-form-aligned" id="createForm" onsubmit="createParcel(event)">
-        <fieldset>
-          <div class="pure-control-group">
-            <label for="newTracking">Tracking Number</label>
-            <input type="number" id="newTracking" name="tracking" required placeholder="e.g. 940010002000" />
-          </div>
-          <div class="pure-control-group">
-            <label for="newFrom">From Address</label>
-            <input type="text" id="newFrom" name="from_address" placeholder="Sender Name/Location" />
-          </div>
-          <div class="pure-control-group">
-            <label for="newTo">To Address</label>
-            <input type="text" id="newTo" name="to_address" placeholder="Recipient Name/Location" />
-          </div>
-          <div class="pure-control-group">
-            <label for="newExpected">Expected Delivery</label>
-            <input type="datetime-local" id="newExpected" name="expected" />
-          </div>
-          <div class="pure-controls">
-            <button type="submit" class="pure-button pure-button-primary">Create Parcel Record</button>
-          </div>
-        </fieldset>
-      </form>
-    </div>
-
-    <div class="card">
-      <h3>Append Tracking Event</h3>
-      <form class="pure-form pure-form-aligned" id="eventForm" onsubmit="appendEvent(event)">
-        <fieldset>
-          <div class="pure-control-group">
-            <label for="selectParcel">Select Target Parcel</label>
-            <select id="selectParcel" name="target_parcel" class="pure-input-1-2" required></select>
-          </div>
-          <div class="pure-control-group">
-            <label for="eventPreset">Preset Event Type</label>
-            <select id="eventPreset" name="preset" class="pure-input-1-2" onchange="applyPreset()">
-              <option value="">-- Select Standard Event --</option>
-              <optgroup label="Standard Domestic Events">
-                <option value="Shipping Label Created">Shipping Label Created</option>
-                <option value="Accepted at Facility">Accepted at Postal Facility</option>
-                <option value="Arrived at Sort Facility">Arrived at Regional Sort Facility</option>
-                <option value="Departed Sort Facility">Departed Regional Sort Facility</option>
-                <option value="Out for Delivery">Out for Delivery</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Delivery Attempted - Notice Left">Delivery Attempted - Notice Left</option>
-                <option value="Available for Pickup">Available for Pickup</option>
-                <option value="Refused - Returning to Sender">Refused - Returning to Sender</option>
-              </optgroup>
-              <optgroup label="International Postal Events">
-                <option value="Processed Through Export Facility">Processed Through Export Facility</option>
-                <option value="Departed Foreign Port">Departed Foreign Port</option>
-                <option value="Arrived in Destination Country">Arrived in Destination Country</option>
-                <option value="Held in Customs">Held in Customs Inspection</option>
-                <option value="Cleared Customs">Cleared Customs</option>
-                <option value="Customs Duty Due">Customs Duty Due</option>
-                <option value="Released from Import Hub">Released from Import Hub</option>
-              </optgroup>
-            </select>
-          </div>
-          <div class="pure-control-group">
-            <label for="eventStatus">Custom Status Title</label>
-            <input type="text" id="eventStatus" name="status" required class="pure-input-1-2" />
-          </div>
-          <div class="pure-control-group">
-            <label for="eventLocation">Facility / Location</label>
-            <input type="text" id="eventLocation" name="location" placeholder="e.g. Phoenix AZ Sort Facility" class="pure-input-1-2" />
-          </div>
-          <div class="pure-control-group">
-            <label for="eventDescription">Status Notes</label>
-            <input type="text" id="eventDescription" name="description" placeholder="e.g. Package processed ahead of schedule" class="pure-input-1-2" />
-          </div>
-          <div class="pure-control-group">
-            <label for="eventTimestamp">Event Date & Time</label>
-            <input type="datetime-local" id="eventTimestamp" name="timestamp" required />
-          </div>
-          <div class="pure-controls">
-            <button type="submit" class="pure-button pure-button-primary">Add Event to Timeline</button>
-          </div>
-        </fieldset>
-      </form>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3>All Database Parcels</h3>
-        <button class="pure-button" onclick="loadParcels()">Refresh Table</button>
-      </div>
-      <div class="table-container">
-        <table class="pure-table pure-table-horizontal" style="width: 100%;">
-          <thead>
-            <tr>
-              <th>Tracking #</th>
-              <th>From / To</th>
-              <th>Status</th>
-              <th>Total Events</th>
-              <th>Expected</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="parcelsTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <h2>Event Log</h2>
+  <ul id="eventList"></ul>
 
   <script>
-    const SUPABASE_URL = 'https://qyswvasrwzberynmybsz.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_0p31Ba51Mc_NckcGWIPnlg_lm9c-Qel';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // 1. Safe state initialization (Prevents 'undefined' errors)
+    function getAdminData() {
+      const stored = localStorage.getItem('adminData');
+      let data = null;
 
-    let currentParcels = [];
+      try {
+        data = stored ? JSON.parse(stored) : null;
+      } catch (e) {
+        console.error("Failed to parse adminData:", e);
+      }
 
-    window.onload = () => {
-      document.getElementById('eventTimestamp').value = new Date().toISOString().slice(0, 16);
-      loadParcels();
-    };
+      // Ensure data exists and has an 'events' array
+      if (!data || typeof data !== 'object') {
+        data = { events: [] };
+      }
+      if (!Array.isArray(data.events)) {
+        data.events = [];
+      }
 
-    async function loadParcels() {
-      const { data, error } = await supabaseClient
-        .from('parcels')
-        .select('*')
-        .order('created_at', { ascending: false });
+      return data;
+    }
 
-      if (error) {
-        alert('Error loading parcels: ' + error.message);
-        console.error(error);
+    function saveAdminData(data) {
+      localStorage.setItem('adminData', JSON.stringify(data));
+    }
+
+    // 2. Safe Append Function
+    function appendEvent(newEvent) {
+      // Get current valid data structure
+      const adminData = getAdminData();
+
+      // Guard check before accessing array
+      if (!Array.isArray(adminData.events)) {
+        adminData.events = [];
+      }
+
+      // Push new event
+      adminData.events.push(newEvent);
+
+      // Persist to storage
+      saveAdminData(adminData);
+
+      // Update UI
+      renderEvents();
+    }
+
+    // 3. Form Submit Handler
+    function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const titleInput = document.getElementById('eventTitle');
+      const dateInput = document.getElementById('eventDate');
+
+      const newEvent = {
+        id: Date.now(),
+        title: titleInput.value,
+        date: dateInput.value
+      };
+
+      // Call append safely
+      appendEvent(newEvent);
+
+      // Reset form
+      titleInput.value = '';
+      dateInput.value = '';
+    }
+
+    // 4. Render Events to Screen
+    function renderEvents() {
+      const listEl = document.getElementById('eventList');
+      const adminData = getAdminData();
+
+      listEl.innerHTML = '';
+
+      if (adminData.events.length === 0) {
+        listEl.innerHTML = '<li>No events found.</li>';
         return;
       }
 
-      currentParcels = data || [];
-      renderSelectOptions();
-      renderTable();
-    }
-
-    function renderSelectOptions() {
-      const select = document.getElementById('selectParcel');
-      select.innerHTML = '<option value="">-- Choose Parcel --</option>';
-      currentParcels.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.innerText = `${p.tracking_number} (${p.from || 'Unknown'} -> ${p.to || 'Unknown'})`;
-        select.appendChild(opt);
+      adminData.events.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.date} - ${item.title}`;
+        listEl.appendChild(li);
       });
     }
 
-    function renderTable() {
-      const tbody = document.getElementById('parcelsTableBody');
-      tbody.innerHTML = '';
-
-      if (currentParcels.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No parcels found in database. Create one above!</td></tr>';
-        return;
-      }
-
-      currentParcels.forEach(p => {
-        const eventsArr = Array.isArray(p.events) ? p.events : [];
-        const isDelivered = p.is_delivered;
-        const tr = document.createElement('tr');
-        
-        tr.innerHTML = `
-          <td><strong>${p.tracking_number}</strong></td>
-          <td>${p.from || 'N/A'}<br><small>to ${p.to || 'N/A'}</small></td>
-          <td><span class="badge ${isDelivered ? 'badge-delivered' : 'badge-transit'}">${isDelivered ? 'Delivered' : 'In Transit'}</span></td>
-          <td>${eventsArr.length} events</td>
-          <td><small>${p.expected_delivery ? new Date(p.expected_delivery).toLocaleDateString() : 'N/A'}</small></td>
-          <td>
-            <button class="pure-button button-xsmall" onclick="toggleDelivered('${p.id}', ${!isDelivered})">
-              Mark ${isDelivered ? 'In-Transit' : 'Delivered'}
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function createParcel(e) {
-      e.preventDefault();
-      const tracking_number = Number(document.getElementById('newTracking').value);
-      const from = document.getElementById('newFrom').value;
-      const to = document.getElementById('newTo').value;
-      const expected = document.getElementById('newExpected').value;
-
-      const newRecord = {
-        tracking_number: tracking_number,
-        from: from || null,
-        to: to || null,
-        expected_delivery: expected ? new Date(expected).toISOString() : null,
-        events: [{
-          status: "Shipping Label Created",
-          location: from || "Origin Facility",
-          description: "System created barcode label and shipment info.",
-          timestamp: new Date().toISOString()
-        }],
-        is_delivered: false
-      };
-
-      const { error } = await supabaseClient.from('parcels').insert([newRecord]);
-      if (error) {
-        alert("Failed to create parcel: " + error.message);
-      } else {
-        document.getElementById('createForm').reset();
-        loadParcels();
-      }
-    }
-
-    function applyPreset() {
-      const val = document.getElementById('eventPreset').value;
-      if (val) {
-        document.getElementById('eventStatus').value = val;
-      }
-    }
-
-    async function appendEvent(e) {
-      e.preventDefault();
-      const parcelId = document.getElementById('selectParcel').value;
-      if (!parcelId) return alert('Select a parcel first.');
-
-      const status = document.getElementById('eventStatus').value;
-      const location = document.getElementById('eventLocation').value;
-      const description = document.getElementById('eventDescription').value;
-      const timestamp = new Date(document.getElementById('eventTimestamp').value).toISOString();
-
-      const targetParcel = currentParcels.find(p => p.id === parcelId);
-      const existingEvents = Array.isArray(targetParcel.events) ? targetParcel.events : [];
-
-      const newEventObj = { status, location, description, timestamp };
-      const updatedEvents = [...existingEvents, newEventObj];
-
-      let updatePayload = { events: updatedEvents };
-
-      if (status.toLowerCase().includes('delivered')) {
-        updatePayload.is_delivered = true;
-        updatePayload.delivery_timestamp = timestamp;
-      }
-
-      const { error } = await supabaseClient
-        .from('parcels')
-        .update(updatePayload)
-        .eq('id', parcelId);
-
-      if (error) {
-        alert("Failed to add event: " + error.message);
-      } else {
-        document.getElementById('eventForm').reset();
-        document.getElementById('eventTimestamp').value = new Date().toISOString().slice(0, 16);
-        loadParcels();
-      }
-    }
-
-    async function toggleDelivered(id, newStatus) {
-      const updateData = { 
-        is_delivered: newStatus,
-        delivery_timestamp: newStatus ? new Date().toISOString() : null
-      };
-
-      const { error } = await supabaseClient
-        .from('parcels')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) {
-        alert("Failed to update status: " + error.message);
-      } else {
-        loadParcels();
-      }
-    }
+    // Initial load
+    document.addEventListener('DOMContentLoaded', renderEvents);
   </script>
 </body>
 </html>

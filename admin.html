@@ -82,6 +82,40 @@
 
       <h4>Append New Postal Event</h4>
       <div class="form-grid">
+        <div class="form-group full-width">
+          <label for="eventSelect">Select Pre-Defined Event:</label>
+          <select id="eventSelect" onchange="handleEventSelectChange(this.value)">
+            <option value="custom">-- Custom Event (Type manually) --</option>
+            <optgroup label="--- Domestic / Local Events ---">
+              <option value="Shipping Label Created, JPD Awaiting Item">Label Created</option>
+              <option value="Accepted at JPD Origin Facility">Accepted at Origin</option>
+              <option value="Arrived at Regional Postal Facility">Arrived at Regional Facility</option>
+              <option value="Departed JPD Regional Facility">Departed Regional Facility</option>
+              <option value="In Transit to Next Facility">In Transit to Next Facility</option>
+              <option value="Arrived at JPD Facility">Arrived at JPD Facility</option>
+              <option value="Departed JPD Facility">Departed JPD Facility</option>
+              <option value="Arrived at Post Office">Arrived at Local Post Office</option>
+              <option value="Out for Delivery">Out for Delivery</option>
+              <option value="Delivered, Front Porch">Delivered - Front Porch</option>
+              <option value="Delivered, In/At Mailbox">Delivered - In/At Mailbox</option>
+              <option value="Delivered, Parcel Locker">Delivered - Parcel Locker</option>
+              <option value="Delivery Attempted - No Access">Delivery Attempted - No Access</option>
+              <option value="Held at Post Office at Request of Recipient">Held at Post Office</option>
+            </optgroup>
+            <optgroup label="--- International / Transit Events ---">
+              <option value="Item Received by Foreign Postal Administration">Received by Foreign Post</option>
+              <option value="Processed Through Facility">Processed Through Foreign Facility</option>
+              <option value="Item Departed Foreign Postal Facility">Departed Foreign Facility</option>
+              <option value="Processed Through International Sorting Center">Processed Through ISC</option>
+              <option value="Inbound Into Customs">Inbound Into Customs</option>
+              <option value="Cleared Customs">Cleared Customs</option>
+              <option value="Customs Delay - Retained for Inspection">Customs Delay / Inspection</option>
+              <option value="Inbound Out of Customs">Inbound Out of Customs</option>
+              <option value="Transfer to Local Carrier for Final Delivery">Transfer to Local Carrier</option>
+              <option value="Departed International Sorting Hub">Departed Sorting Hub</option>
+            </optgroup>
+          </select>
+        </div>
         <div class="form-group">
           <label for="eventStatus">Event Description:</label>
           <input type="text" id="eventStatus" placeholder="e.g., Arrived at Regional Origin Facility" required />
@@ -132,17 +166,25 @@
 
     const PRESETS = {
       domestic: [
-        { status: "Shipping Label Created, USPS Awaiting Item", location: "Phoenix, AZ 85001", timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
-        { status: "Accepted at USPS Origin Facility", location: "PHOENIX AZ DISTRIBUTION CENTER", timestamp: new Date(Date.now() - 86400000).toISOString() },
+        { status: "Shipping Label Created, JPD Awaiting Item", location: "Phoenix, AZ 85001", timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
+        { status: "Accepted at JPD Origin Facility", location: "PHOENIX AZ DISTRIBUTION CENTER", timestamp: new Date(Date.now() - 86400000).toISOString() },
         { status: "Arrived at Regional Postal Facility", location: "TUCSON AZ DISTRIBUTION CENTER", timestamp: new Date().toISOString() }
       ],
       international: [
         { status: "Item Received by Foreign Postal Administration", location: "TOKYO, JAPAN", timestamp: new Date(Date.now() - 86400000 * 4).toISOString() },
-        { status: "Processed Through Facility", location: "ISC LOS ANGELES CA (USPS)", timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
+        { status: "Processed Through Facility", location: "ISC LOS ANGELES CA (JPD)", timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
         { status: "Inbound Into Customs", location: "LOS ANGELES, UNITED STATES", timestamp: new Date(Date.now() - 86400000).toISOString() },
         { status: "Cleared Customs", location: "LOS ANGELES, UNITED STATES", timestamp: new Date().toISOString() }
       ]
     };
+
+    function handleEventSelectChange(val) {
+      if (val === 'custom' || !val) {
+        document.getElementById('eventStatus').value = '';
+        return;
+      }
+      document.getElementById('eventStatus').value = val;
+    }
 
     function loadPreset(type) {
       if (type === 'domestic') {
@@ -259,6 +301,7 @@
         statusMsg.textContent = "Successfully saved parcel & event!";
         document.getElementById('eventStatus').value = '';
         document.getElementById('eventLocation').value = '';
+        document.getElementById('eventSelect').value = 'custom';
         renderUI();
       }
     }

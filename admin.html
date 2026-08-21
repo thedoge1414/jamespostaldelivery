@@ -2,117 +2,158 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Dashboard - Event Manager</title>
+  <title>Admin - Tracking Event Manager</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
-    form { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; }
-    input, button { padding: 0.5rem; font-size: 1rem; }
-    ul { list-style-type: none; padding: 0; }
-    li { background: #f4f4f4; padding: 0.75rem; margin-bottom: 0.5rem; border-radius: 4px; }
+    body { font-family: sans-serif; max-width: 650px; margin: 2rem auto; padding: 0 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+    input, button, textarea { padding: 0.5rem; font-size: 1rem; }
+    button { cursor: pointer; background: #0066cc; color: #fff; border: none; border-radius: 4px; padding: 0.6rem; }
+    button:hover { background: #0052a3; }
+    .events-list { margin-top: 1.5rem; border-top: 2px solid #ccc; padding-top: 1rem; }
+    .event-card { background: #f9f9f9; border-left: 4px solid #0066cc; padding: 0.75rem; margin-bottom: 0.75rem; }
+    .event-time { font-size: 0.85rem; color: #666; }
   </style>
 </head>
 <body>
 
-  <h2>Add New Event</h2>
+  <h2>Update Order Tracking Status</h2>
   
   <form id="eventForm" onsubmit="handleFormSubmit(event)">
-    <input type="text" id="eventTitle" placeholder="Event Title" required />
-    <input type="date" id="eventDate" required />
+    <div class="form-group">
+      <label for="trackingNumber">Tracking Number:</label>
+      <input 
+        type="text" 
+        id="trackingNumber" 
+        placeholder="e.g., JPD-88204-AZ" 
+        required 
+        oninput="loadExistingEvents()"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="eventStatus">Status / Description:</label>
+      <input type="text" id="eventStatus" placeholder="e.g., Package arrived at sorting facility" required />
+    </div>
+
+    <div class="form-group">
+      <label for="eventLocation">Location (Optional):</label>
+      <input type="text" id="eventLocation" placeholder="e.g., Tucson, AZ" />
+    </div>
+
     <button type="submit">Append Event</button>
   </form>
 
-  <h2>Event Log</h2>
-  <ul id="eventList"></ul>
+  <div class="events-list">
+    <h3>Existing Tracking Events</h3>
+    <div id="eventContainer">
+      <p style="color: #777;">Enter a tracking number above to view available events.</p>
+    </div>
+  </div>
 
   <script>
-    // 1. Safe state initialization (Prevents 'undefined' errors)
-    function getAdminData() {
-      const stored = localStorage.getItem('adminData');
-      let data = null;
+    // Safe lookup helper that guarantees an order object with an events array exists
+    function getOrderData(trackingNum) {
+      if (!trackingNum) return null;
+      
+      const stored = localStorage.getItem('tracking_orders');
+      let orders = {};
 
       try {
-        data = stored ? JSON.parse(stored) : null;
+        orders = stored ? JSON.parse(stored) : {};
       } catch (e) {
-        console.error("Failed to parse adminData:", e);
+        console.error("Failed to parse tracking data:", e);
+        orders = {};
       }
 
-      // Ensure data exists and has an 'events' array
-      if (!data || typeof data !== 'object') {
-        data = { events: [] };
+      // If tracking number doesn't exist yet in storage, initialize it safely
+      if (!orders[trackingNum] || typeof orders[trackingNum] !== 'object') {
+        orders[trackingNum] = { trackingNumber: trackingNum, events: [] };
       }
-      if (!Array.isArray(data.events)) {
-        data.events = [];
+      
+      // Crucial fix: Ensure the 'events' property is ALWAYS an array
+      if (!Array.isArray(orders[trackingNum].events)) {
+        orders[trackingNum].events = [];
       }
 
-      return data;
+      return { orders, currentOrder: orders[trackingNum] };
     }
 
-    function saveAdminData(data) {
-      localStorage.setItem('adminData', JSON.stringify(data));
+    // Append function on line 252 - safe from undefined 'events' property errors
+    function appendEvent(trackingNum, newEvent) {
+      const data = getOrderData(trackingNum);
+      if (!data) return;
+
+      const { orders, currentOrder } = data;
+
+      // Safely append to the events array
+      currentOrder.events.push(newEvent);
+
+      // Save updated data structure back to storage
+      localStorage.setItem('tracking_orders', JSON.stringify(orders));
+
+      // Refresh displayed events
+      renderEvents(currentOrder.events);
     }
 
-    // 2. Safe Append Function
-    function appendEvent(newEvent) {
-      // Get current valid data structure
-      const adminData = getAdminData();
-
-      // Guard check before accessing array
-      if (!Array.isArray(adminData.events)) {
-        adminData.events = [];
-      }
-
-      // Push new event
-      adminData.events.push(newEvent);
-
-      // Persist to storage
-      saveAdminData(adminData);
-
-      // Update UI
-      renderEvents();
-    }
-
-    // 3. Form Submit Handler
+    // Form submission
     function handleFormSubmit(e) {
       e.preventDefault();
 
-      const titleInput = document.getElementById('eventTitle');
-      const dateInput = document.getElementById('eventDate');
+      const trackingNum = document.getElementById('trackingNumber').value.trim();
+      const statusText = document.getElementById('eventStatus').value.trim();
+      const locationText = document.getElementById('eventLocation').value.trim();
+
+      if (!trackingNum || !statusText) return;
 
       const newEvent = {
-        id: Date.now(),
-        title: titleInput.value,
-        date: dateInput.value
+        id: 'evt_' + Date.now(),
+        timestamp: new Date().toLocaleString(),
+        status: statusText,
+        location: locationText || 'N/A'
       };
 
-      // Call append safely
-      appendEvent(newEvent);
+      // Calls appendEvent safely
+      appendEvent(trackingNum, newEvent);
 
-      // Reset form
-      titleInput.value = '';
-      dateInput.value = '';
+      // Clear input fields (keep tracking number active)
+      document.getElementById('eventStatus').value = '';
+      document.getElementById('eventLocation').value = '';
     }
 
-    // 4. Render Events to Screen
-    function renderEvents() {
-      const listEl = document.getElementById('eventList');
-      const adminData = getAdminData();
-
-      listEl.innerHTML = '';
-
-      if (adminData.events.length === 0) {
-        listEl.innerHTML = '<li>No events found.</li>';
+    // Render events on input or update
+    function loadExistingEvents() {
+      const trackingNum = document.getElementById('trackingNumber').value.trim();
+      if (!trackingNum) {
+        document.getElementById('eventContainer').innerHTML = 
+          '<p style="color: #777;">Enter a tracking number above to view available events.</p>';
         return;
       }
 
-      adminData.events.forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = `${item.date} - ${item.title}`;
-        listEl.appendChild(li);
-      });
+      const data = getOrderData(trackingNum);
+      renderEvents(data ? data.currentOrder.events : []);
     }
 
-    // Initial load
-    document.addEventListener('DOMContentLoaded', renderEvents);
+    function renderEvents(eventsArray) {
+      const container = document.getElementById('eventContainer');
+      container.innerHTML = '';
+
+      if (!eventsArray || eventsArray.length === 0) {
+        container.innerHTML = '<p>No events recorded for this tracking number yet.</p>';
+        return;
+      }
+
+      // Display most recent events first
+      [...eventsArray].reverse().forEach(evt => {
+        const div = document.createElement('div');
+        div.className = 'event-card';
+        div.innerHTML = `
+          <strong>${evt.status}</strong>
+          <div><small>Location: ${evt.location}</small></div>
+          <div class="event-time">${evt.timestamp}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
   </script>
 </body>
 </html>
